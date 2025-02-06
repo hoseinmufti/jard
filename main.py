@@ -111,9 +111,9 @@ def main():
         print("\n")
 
 
-def convert_length_to_weight(tube, length):
-    std_length = STD_ALUMINUM_TUBE_MEASUREMENTS[tube]["length"]
-    std_weight = STD_ALUMINUM_TUBE_MEASUREMENTS[tube]["weight"]
+def convert_length_to_weight(tube_type, length):
+    std_length = STD_ALUMINUM_TUBE_MEASUREMENTS[tube_type]["length"]
+    std_weight = STD_ALUMINUM_TUBE_MEASUREMENTS[tube_type]["weight"]
     weight = (std_weight * length) / std_length
 
     return weight
