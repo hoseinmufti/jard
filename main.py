@@ -1,5 +1,3 @@
-import sys
-
 WORKERFEE_PER_METER_SQUARED = 5
 M2_TO_M_CONVERSION_FACTOR = 10000
 
@@ -80,7 +78,7 @@ def main():
         # Calculate worker fee per area
         workerfee = calculate_workerfee(window_w, window_h)
 
-        # TODO: Compare total cost with manual calculation
+        # Calculate total cost
         prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
         total_cost = sum(prices_to_sum)
 
@@ -101,7 +99,6 @@ def main():
                 {"Total Aluminum Kg" : f"{total_aluminum_kg} kg"}
                 ]
                 
-        
         for dict in output:
             for key, value in dict.items():
                 print(key, value, end=' | ')
