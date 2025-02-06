@@ -14,10 +14,25 @@ ITEMS_PER_SLASH = {"cornerjoint": 4, "wheel": 2, "handle": 1}
 PRICES = {"Aluminum kg": 3.8, "Handle":1.85, "Corner Joint": 0.32, "Wheel": 1.75}
 
 
-windows = [{"w": 150, "h": 150}]
+windows = [
+{"w": 200, "h": 250},
+{"w": 200, "h": 125},
+{"w": 200, "h": 250},
+{"w": 200, "h": 275},
+{"w": 150, "h": 125},
+{"w": 150, "h": 150},
+{"w": 180, "h": 250},
+{"w": 200, "h": 250},
+]
+
+from datetime import datetime
+
+
 
 def main():
-    for window in windows:
+    total_windows_cost = 0
+
+    for i, window in enumerate(windows):
         # Assign number of frames for mainframe and slashashes
         num_mainframes = 1
         num_slashes = 2
@@ -50,6 +65,7 @@ def main():
         total_mainframes_length = total_mainframe_length * num_mainframes
         total_slashes_length = total_slash_length * num_slashes
 
+
         # Calculate total mainframes weight
         total_mainframes_weight = convert_length_to_weight("mainframe", total_mainframes_length)
         # Calculate total slashes weight
@@ -78,13 +94,11 @@ def main():
         total_handles_price = calculate_price(PRICES["Handle"], total_handles)
         total_cornerjoints_price = calculate_price(PRICES["Corner Joint"], total_cornerjoints)
         total_wheels_price = calculate_price(PRICES["Wheel"], total_wheels)
-        # Calculate worker fee per area
         workerfee = window_area * WORKERFEE_PER_METER_SQUARED
 
         # Calculate total cost
         prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
         total_cost = sum(prices_to_sum)
-
 
         # Calculate price per meter
         price_per_meter = total_cost / window_area
@@ -100,7 +114,8 @@ def main():
                 {"Total Aluminum Kg" : f"{total_aluminums_weight} kg"}
                 ]
         
-        output = [{"Total Aluminum Kg" : f"{total_aluminums_weight} kg"},
+        output = [{"Window:": f"id: {i + 1} w: {window_w} h:{window_h}"},
+                {"Total Aluminum Kg" : f"{total_aluminums_weight} kg"},
                 {"Total Cost": f"$ {(total_cost):.2f}"},
                 {"Price per meter": f"$ {price_per_meter:.2f}"}
                 ]
@@ -109,6 +124,10 @@ def main():
             for key, value in dict.items():
                 print(key, value)
         print("\n")
+
+        total_windows_cost += total_cost
+
+    print(f"total sum cost of windows: $ {round(total_windows_cost, 2)}")
 
 
 def convert_length_to_weight(tube_type, length):
