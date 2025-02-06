@@ -28,9 +28,8 @@ windows = [
 from datetime import datetime
 
 
-
 def main():
-    total_windows_cost = 0
+    total_windows_cost_sum = 0
 
     for i, window in enumerate(windows):
         # Assign number of frames for mainframe and slashashes
@@ -125,9 +124,9 @@ def main():
                 print(key, value)
         print("\n")
 
-        total_windows_cost += total_cost
+        total_windows_cost_sum += total_cost
 
-    print(f"total sum cost of windows: $ {round(total_windows_cost, 2)}")
+    print(f"total sum cost of windows: $ {round(total_windows_cost_sum, 2)}")
 
 
 def convert_length_to_weight(tube_type, length):
