@@ -1,5 +1,5 @@
 WORKERFEE_PER_METER_SQUARED = 5
-M2_TO_M_CONVERSION_FACTOR = 10000
+CM2_TO_M2_CONVERSION_FACTOR = 10000
 
 STD_ALUMINUM_TUBE_MEASUREMENTS = {
     "mainframe": {"length": 600, "weight": 8.4},
@@ -14,7 +14,7 @@ ITEMS_PER_SLASH = {"cornerjoint": 4, "wheel": 2, "handle": 1}
 PRICES = {"Aluminum kg": 3.8, "Handle":1.85, "Corner Joint": 0.32, "Wheel": 1.75}
 
 
-windows = [{"w": 193, "h": 245}]
+windows = [{"w": 150, "h": 150}]
 
 def main():
     for window in windows:
@@ -32,6 +32,9 @@ def main():
         window_w = window["w"]
         window_h = window["h"]
         slash_w = window_w / w_per_slash
+
+        # Calculate window area
+        window_area = (window_w * window_h) / CM2_TO_M2_CONVERSION_FACTOR
 
         # Calculate total mainframe length
         total_mainframe_w = window_w * w_per_mainframe
@@ -76,13 +79,16 @@ def main():
         total_cornerjoints_price = calculate_price(PRICES["Corner Joint"], total_cornerjoints)
         total_wheels_price = calculate_price(PRICES["Wheel"], total_wheels)
         # Calculate worker fee per area
-        workerfee = calculate_workerfee(window_w, window_h)
+        workerfee = window_area * WORKERFEE_PER_METER_SQUARED
 
         # Calculate total cost
         prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
         total_cost = sum(prices_to_sum)
 
         total_aluminum_kg = round(total_mainframes_weight + total_slashes_weight + total_antifly_weight + total_slits_weight, 3)
+
+        # Calculate price per meter
+        price_per_meter = total_cost / window_area
 
         # Assign amounts with prices
         debug = [{"Window:": f"width = {window_w} height = {window_h}"},
@@ -95,14 +101,14 @@ def main():
                 {"Total Aluminum Kg" : f"{total_aluminum_kg} kg"}
                 ]
         
-        output = [{"Total Cost": f"$ {total_cost:.2f}"},
-                {"Total Aluminum Kg" : f"{total_aluminum_kg} kg"}
+        output = [{"Total Aluminum Kg" : f"{total_aluminum_kg} kg"},
+                {"Total Cost": f"$ {(total_cost):.2f}"},
+                {"Price per meter": f"$ {price_per_meter:.2f}"}
                 ]
                 
         for dict in output:
             for key, value in dict.items():
-                print(key, value, end=' | ')
-            print("")
+                print(key, value)
         print("\n")
 
 
@@ -114,16 +120,8 @@ def convert_length_to_weight(tube, length):
     return weight
 
 
-def calculate_workerfee(w, h):
-    area = w * h
-    area_meters = area / M2_TO_M_CONVERSION_FACTOR
-    workerfee = round(area_meters * WORKERFEE_PER_METER_SQUARED, 2)
-
-    return workerfee
-
-
 def calculate_price(price, quantity):
-    total_price = round(price * quantity, 2)
+    total_price = price * quantity
 
     return total_price
 
