@@ -61,8 +61,8 @@ def main():
         total_slits_weight = convert_length_to_weight("slit", total_slits_length)
 
         # Calculate total aluminum tubes weight
-        total_aluminum_weights = [total_mainframes_weight, total_slashes_weight, total_antifly_weight, total_slits_weight]
-        total_aluminums_weight = sum(total_aluminum_weights)
+        aluminum_weights = [total_mainframes_weight, total_slashes_weight, total_antifly_weight, total_slits_weight]
+        total_aluminums_weight = sum(aluminum_weights)
 
         # Calculate amounts of handles
         total_handles = ITEMS_PER_SLASH["handle"] * num_slashes
@@ -85,7 +85,6 @@ def main():
         prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
         total_cost = sum(prices_to_sum)
 
-        total_aluminum_kg = round(total_mainframes_weight + total_slashes_weight + total_antifly_weight + total_slits_weight, 3)
 
         # Calculate price per meter
         price_per_meter = total_cost / window_area
@@ -98,10 +97,10 @@ def main():
                 {"Total Corner Joints:": total_cornerjoints, "Price": f"$ {total_cornerjoints_price}"},              
                 {"Total Worker Fee": f"$ {workerfee}"},
                 {"Total Cost": f"$ {total_cost}"},
-                {"Total Aluminum Kg" : f"{total_aluminum_kg} kg"}
+                {"Total Aluminum Kg" : f"{total_aluminums_weight} kg"}
                 ]
         
-        output = [{"Total Aluminum Kg" : f"{total_aluminum_kg} kg"},
+        output = [{"Total Aluminum Kg" : f"{total_aluminums_weight} kg"},
                 {"Total Cost": f"$ {(total_cost):.2f}"},
                 {"Price per meter": f"$ {price_per_meter:.2f}"}
                 ]
