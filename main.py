@@ -4,10 +4,10 @@ WORKERFEE_PER_METER_SQUARED = 5
 M2_TO_M_CONVERSION_FACTOR = 10000
 
 STD_ALUMINUM_TUBE_MEASUREMENTS = {
-    "mainframe": {"length": 600, "weight": 8400},
-    "slash": {"length": 600, "weight": 5500},
-    "antifly": {"length": 600, "weight": 3500},
-    "slit": {"length": 600, "weight": 2000}
+    "mainframe": {"length": 600, "weight": 8.4},
+    "slash": {"length": 600, "weight": 5.5},
+    "antifly": {"length": 600, "weight": 3.5},
+    "slit": {"length": 600, "weight": 2.0}
 }
 
 ITEMS_PER_MAINFRAME = {"cornerjoint": 8}
@@ -59,6 +59,10 @@ def main():
         total_slits_length = window_h * num_slashes
         total_slits_weight = convert_length_to_weight("slit", total_slits_length)
 
+        # Calculate total aluminum tubes weight
+        total_aluminum_weights = [total_mainframes_weight, total_slashes_weight, total_antifly_weight, total_slits_weight]
+        total_aluminums_weight = sum(total_aluminum_weights)
+
         # Calculate amounts of handles
         total_handles = ITEMS_PER_SLASH["handle"] * num_slashes
         # Calculate corner joints
@@ -68,35 +72,28 @@ def main():
         # Calculate total wheels
         total_wheels = ITEMS_PER_SLASH["wheel"] * num_slashes
 
-        # Calculate worker fee per area
-        workerfee = calculate_workerfee(window_w, window_h)
-
         # Calculate prices
-        total_mainframe_price = calculate_price(PRICES["Aluminum kg"], total_mainframes_weight)
-        total_s_price = calculate_price(PRICES["Aluminum kg"], total_slashes_weight)
-        total_antifly_price = calculate_price(PRICES["Aluminum kg"], total_antifly_weight)
-        total_slit_price = calculate_price(PRICES["Aluminum kg"], total_slits_weight)
+        total_aluminums_price = calculate_price(PRICES["Aluminum kg"], total_aluminums_weight)
         total_handles_price = calculate_price(PRICES["Handle"], total_handles)
         total_cornerjoints_price = calculate_price(PRICES["Corner Joint"], total_cornerjoints)
         total_wheels_price = calculate_price(PRICES["Wheel"], total_wheels)
+        # Calculate worker fee per area
+        workerfee = calculate_workerfee(window_w, window_h)
 
         # TODO: Compare total cost with manual calculation
-        prices_to_sum = [total_mainframe_price, total_s_price, total_antifly_price, total_slit_price , total_handles_price, total_cornerjoints_price, total_wheels_price]
+        prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
         total_cost = sum(prices_to_sum)
 
-        total_aluminum_kg = total_mainframes_weight + total_slashes_weight + total_antifly_weight + total_slits_weight
+        total_aluminum_kg = round(total_mainframes_weight + total_slashes_weight + total_antifly_weight + total_slits_weight, 3)
 
         # Assign amounts with prices
         debug = [{"Window:": f"width = {window_w} height = {window_h}"},
-                {"Total MainFrame Weight": f"{total_mainframes_weight} kg", "Price": f"$ {total_mainframe_price:.2f}"},
-                {"Total slashashes Weight": f"{total_slashes_weight} kg", "Price": f"$ {total_s_price:.2f}"},
-                {"Total Antifly Weight": f"{total_antifly_weight} kg", "Price": f"$ {total_antifly_price:.2f}"},
-                {"Total slit Weight": f"{total_slits_weight} kg", "Price": f"$ {total_slit_price:.2f}"},
-                {"Total Handles": total_handles, "Price": f"$ {total_handles_price:.2f}"},
-                {"Total Wheels": total_wheels, "Price": f"$ {total_wheels_price:.2f}"},
-                {"Total Corner Joints:": total_cornerjoints, "Price": f"$ {total_cornerjoints_price:.2f}"},              
+                {"Total Aluminums Weight": f"{total_aluminums_weight} kg", "Price": f"$ {total_aluminums_price}"},
+                {"Total Handles": total_handles, "Price": f"$ {total_handles_price}"},
+                {"Total Wheels": total_wheels, "Price": f"$ {total_wheels_price}"},
+                {"Total Corner Joints:": total_cornerjoints, "Price": f"$ {total_cornerjoints_price}"},              
                 {"Total Worker Fee": f"$ {workerfee}"},
-                {"Total Cost": f"$ {total_cost:.2f}"},
+                {"Total Cost": f"$ {total_cost}"},
                 {"Total Aluminum Kg" : f"{total_aluminum_kg} kg"}
                 ]
         
@@ -115,7 +112,7 @@ def main():
 def convert_length_to_weight(tube, length):
     std_length = STD_ALUMINUM_TUBE_MEASUREMENTS[tube]["length"]
     std_weight = STD_ALUMINUM_TUBE_MEASUREMENTS[tube]["weight"]
-    weight = (std_weight * length) / std_length / 1000
+    weight = (std_weight * length) / std_length
 
     return weight
 
@@ -123,13 +120,13 @@ def convert_length_to_weight(tube, length):
 def calculate_workerfee(w, h):
     area = w * h
     area_meters = area / M2_TO_M_CONVERSION_FACTOR
-    workerfee = area_meters * WORKERFEE_PER_METER_SQUARED
+    workerfee = round(area_meters * WORKERFEE_PER_METER_SQUARED, 2)
 
     return workerfee
 
 
 def calculate_price(price, quantity):
-    total_price = price * quantity
+    total_price = round(price * quantity, 2)
 
     return total_price
 
