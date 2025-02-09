@@ -4,7 +4,7 @@ from jard import Jard
 
 def main():
     slide_windows = [
-        {"w": 200, "h": 250},
+        {"w": 193, "h": 245},
         # {"w": 200, "h": 125},
         # {"w": 200, "h": 250},
         # {"w": 200, "h": 275},
@@ -14,14 +14,14 @@ def main():
         # {"w": 200, "h": 250},
     ]
     
-    doors = [
-        {"w": 120, "h": 200},
-    ]
+    # doors = [
+    #     {"w": 120, "h": 200},
+    # ]
     
     jard = Jard()
-    jard.slide_window(slide_windows) 
+    jard.slide_window(slide_windows)
 
-    
+
 
 if __name__ == "__main__":
     main()

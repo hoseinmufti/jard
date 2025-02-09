@@ -1,112 +1,154 @@
+from structural_blueprints import STRUCTURAL_BLUEPRINTS
+from prices import PRICES
+from check import check
+
 WORKERFEE_PER_METER_SQUARED = 5
 CM2_TO_M2_CONVERSION_FACTOR = 10000
 
-STD_ALUMINUM_TUBE_MEASUREMENTS = {
-    "frame": {"length": 600, "weight": 8.4},
-    "slash": {"length": 600, "weight": 5.5},
-    "antifly": {"length": 600, "weight": 3.5},
-    "slit": {"length": 600, "weight": 2.0}
-}
 
-PRICES = {"Aluminum kg": 3.8, "Handle":1.85, "Corner Joint": 0.32, "Wheel": 1.75}
-
-ACCESSORIES_PER_FRAME = {"cornerjoint": 8}
-ACCESSORIES_PER_SLASH = {"cornerjoint": 4, "wheel": 2, "handle": 1}
-
-
-class Jard():
+class Jard:
     def slide_window(self, windows):
+        def calculate_total_part_length(w, h, structural_blueprint):
+            parts_multiplied_total_length = {}
+            parts_combined_total_length = 0
+            
+            for part in structural_blueprint:
+                dimension_multipliers = structural_blueprint[part]["dimension multipliers"]
+                dimension_ratios = structural_blueprint[part]["dimension ratios"]
+
+                w_count = dimension_multipliers["w"]
+                h_count = dimension_multipliers["h"]
+                w_ratio = dimension_ratios["w"]
+                h_ratio = dimension_ratios["h"]
+                part_count = structural_blueprint[part]["count"]
+
+                total_w_length = (w * w_ratio) * w_count
+                total_h_length = (h * h_ratio) * h_count
+                part_total_length = total_w_length + total_h_length
+
+                part_multiplied_total_length = part_total_length * part_count
+
+                parts_multiplied_total_length[part] = part_multiplied_total_length
+                parts_combined_total_length += part_multiplied_total_length
+            
+            return parts_multiplied_total_length, parts_combined_total_length
+        
+
+        def calculate_total_aluminums_weights(structural_blueprint, parts_length):
+            parts_weights = {}
+            combined_weight = 0
+            for part in structural_blueprint:
+                std_length = structural_blueprint[part]["std_tube_measurements"]["length"]
+                std_weight = structural_blueprint[part]["std_tube_measurements"]["weight"]
+                weight = (std_weight * parts_length[part]) / std_length
+
+                parts_weights[part] = weight
+                combined_weight += weight
+
+            return parts_weights, combined_weight
+
+
+        def count_total_accesories(structural_blueprint):
+            total_part_accessories_details = {}
+            combined__total_accessories_details = {}
+
+            for part in structural_blueprint:
+                accessories_details = structural_blueprint[part]["accessories"]
+
+                if accessories_details:
+                    part_count = structural_blueprint[part]["count"]
+
+                    for accessory in accessories_details:
+                        accessory_count = accessories_details[accessory]["count"]
+                        accessory_price = accessories_details[accessory]["price"]
+
+                        accessory_total_count = accessory_count * part_count
+                        accessory_total_price = accessory_total_count * accessory_price
+
+                        # Add accessory details to total_part_accessories_details
+                        if part in total_part_accessories_details:
+                            total_part_accessories_details[part][accessory] = {
+                                "total count": accessory_total_count,
+                                "total price": accessory_total_price,
+                            }
+                        else:
+                            total_part_accessories_details[part] = {
+                                accessory:{
+                                    "total count": accessory_total_count,
+                                    "total price": accessory_total_price,
+                                }
+                            }
+
+                        if accessory in combined__total_accessories_details:
+                            combined__total_accessories_details[accessory]["total count"] += accessory_total_count
+                            combined__total_accessories_details[accessory]["total price"] += accessory_total_price
+                        else:
+                            combined__total_accessories_details[accessory] = {
+                            "total count": accessory_total_count,
+                            "total price": accessory_total_price,
+                            }
+
+            return combined__total_accessories_details, total_part_accessories_details
+
+
+        slidewindow_str_blu = STRUCTURAL_BLUEPRINTS["slide window"]
+
         total_windows_cost_sum = 0
 
         for i, window in enumerate(windows):
-            # Assign number of frames for frame and slashashes
-            frames_count = 1
-            slashes_count = 2
-
-            w_count_per_frame = 2
-            h_count_per_frame = 2
-
-            w_count_per_slash = 2
-            h_count_per_slash = 2
-
             # Assign window width and height
             window_w = window["w"]
             window_h = window["h"]
-            slash_w = window_w / w_count_per_slash
-
             # Calculate window area
             window_area = (window_w * window_h) / CM2_TO_M2_CONVERSION_FACTOR
 
-            # Calculate total frame length
-            total_frame_w = window_w * w_count_per_frame
-            total_frame_h = window_h * h_count_per_frame
-            total_frame_length = total_frame_w + total_frame_h
-
-            # Calculate total slash length
-            total_slash_w = slash_w * w_count_per_slash
-            total_slash_h = window_h * h_count_per_slash
-            total_slash_length = total_slash_w + total_slash_h
-
-            # Calculate total frames lengths
-            total_frames_length = total_frame_length * frames_count
-            total_slashes_length = total_slash_length * slashes_count
-
-
-            # Calculate total frames weight
-            total_frames_weight = self._convert_length_to_weight("frame", total_frames_length)
-            # Calculate total slashes weight
-            total_slashes_weight = self._convert_length_to_weight("slash", total_slashes_length)
-            # Caluclate total antiflies weight
-            total_antifly_weight = self._convert_length_to_weight("antifly", total_slash_length)
-            # Calculate total slits weight
-            total_slits_length = window_h * slashes_count
-            total_slits_weight = self._convert_length_to_weight("slit", total_slits_length)
-
-            # Calculate total aluminum tubes weight
-            aluminum_weights = [total_frames_weight, total_slashes_weight, total_antifly_weight, total_slits_weight]
-            total_aluminums_weight = sum(aluminum_weights)
-
-            # Calculate amounts of handles
-            total_handles = ACCESSORIES_PER_SLASH["handle"] * slashes_count
-            # Calculate corner joints
-            frame_cornerjoints = ACCESSORIES_PER_FRAME["cornerjoint"] * frames_count
-            s_cornerjoints = ACCESSORIES_PER_SLASH["cornerjoint"] * slashes_count
-            total_cornerjoints = frame_cornerjoints + s_cornerjoints
-            # Calculate total wheels
-            total_wheels = ACCESSORIES_PER_SLASH["wheel"] * slashes_count
+            # Calculate total parts lengths
+            parts_multiplied_total_length, parts_combined_length = calculate_total_part_length(window_w, window_h, slidewindow_str_blu)
+            # Calculate alumnium weight
+            parts_aluminum_weights, combined_aluminum_weight = calculate_total_aluminums_weights(slidewindow_str_blu, parts_multiplied_total_length)
+            # Calculate total accessories
+            combined_total_accessories_details, total_part_accessories_details = count_total_accesories(slidewindow_str_blu)
+            # Calculate total accessories price
+            total_accessories_cost = 0
+            for accessory in combined_total_accessories_details:
+                total_accessories_cost += combined_total_accessories_details[accessory]["total price"]
 
             # Calculate prices
-            total_aluminums_price = self._calculate_price(PRICES["Aluminum kg"], total_aluminums_weight)
-            total_handles_price = self._calculate_price(PRICES["Handle"], total_handles)
-            total_cornerjoints_price = self._calculate_price(PRICES["Corner Joint"], total_cornerjoints)
-            total_wheels_price = self._calculate_price(PRICES["Wheel"], total_wheels)
+            total_aluminums_price = self._calculate_price(PRICES["aluminum kg"], combined_aluminum_weight)
             workerfee = window_area * WORKERFEE_PER_METER_SQUARED
 
             # Calculate total cost
-            prices_to_sum = [total_aluminums_price , total_handles_price, total_cornerjoints_price, total_wheels_price, workerfee]
+            prices_to_sum = [
+                total_aluminums_price,
+                total_accessories_cost,
+                workerfee,
+            ]
             total_cost = sum(prices_to_sum)
 
             # Calculate price per meter
             price_per_meter = total_cost / window_area
 
-            # Assign amounts with prices
-            debug = [{"Window:": f"width = {window_w} height = {window_h}"},
-                    {"Total Aluminums Weight": f"{total_aluminums_weight} kg", "Price": f"$ {total_aluminums_price}"},
-                    {"Total Handles": total_handles, "Price": f"$ {total_handles_price}"},
-                    {"Total Wheels": total_wheels, "Price": f"$ {total_wheels_price}"},
-                    {"Total Corner Joints:": total_cornerjoints, "Price": f"$ {total_cornerjoints_price}"},              
-                    {"Total Worker Fee": f"$ {workerfee}"},
-                    {"Total Cost": f"$ {total_cost}"},
-                    {"Total Aluminum Kg" : f"{total_aluminums_weight} kg"}
-                    ]
-            
-            output = [{"Window:": f"id: {i + 1} w: {window_w} h:{window_h}"},
-                    {"Total Aluminum Kg" : f"{total_aluminums_weight} kg"},
-                    {"Total Cost": f"$ {(total_cost):.2f}"},
-                    {"Price per meter": f"$ {price_per_meter:.2f}"}
-                    ]
-                    
-            for dict in output:
+            # Assign counts with prices
+            debug = [
+                {"Window:": f"width = {window_w} height = {window_h}"},
+                {
+                    "Total Aluminums Weight": f"{combined_aluminum_weight} kg",
+                    "Price": f"$ {total_aluminums_price}",
+                },
+                total_part_accessories_details,
+                {"Total Worker Fee": f"$ {workerfee}"},
+                {"Total Cost": f"$ {total_cost}"},
+                {"Total Aluminum Kg": f"{combined_aluminum_weight} kg"},
+            ]
+
+            output = [
+                {"Window:": f"id: {i + 1} w: {window_w} h:{window_h}"},
+                {"Total Aluminum Kg": f"{combined_aluminum_weight} kg"},
+                {"Total Cost": f"$ {(total_cost):.2f}"},
+                {"Price per meter": f"$ {price_per_meter:.2f}"},
+            ]
+
+            for dict in debug:
                 for key, value in dict.items():
                     print(key, value)
             print("\n")
@@ -115,23 +157,11 @@ class Jard():
 
         print(f"total sum cost of windows: $ {round(total_windows_cost_sum, 2)}")
 
-
     def door(self, doors):
-        frames_count = 1
-
-
         for door in doors:
             ...
 
     # Private functions
-    def _convert_length_to_weight(self, tube_type, length):
-        std_length = STD_ALUMINUM_TUBE_MEASUREMENTS[tube_type]["length"]
-        std_weight = STD_ALUMINUM_TUBE_MEASUREMENTS[tube_type]["weight"]
-        weight = (std_weight * length) / std_length
-
-        return weight
-
-
     def _calculate_price(self, price, quantity):
         total_price = price * quantity
 
