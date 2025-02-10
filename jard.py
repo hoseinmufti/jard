@@ -86,10 +86,10 @@ class Jard:
                 total_tube_length = calculate_tube_length(w, h, *tube_info)
 
                 std_tube_length = STD_ALUMINUM_TUBE_INFO[tube]["measurements"]["length"]
-                tube_count = math.ceil(total_tube_length / std_tube_length)
+                tube_count = total_tube_length / std_tube_length
 
-                structure_total_tubes_counts[tube_name] = structure_total_tubes_counts.get(tube, 0) + tube_count
-                structures_total_tubes_counts[tube_name] = structures_total_tubes_counts.get(tube, 0) + tube_count
+                structure_total_tubes_counts[tube_name] = structure_total_tubes_counts.get(tube_name, 0) + tube_count
+                structures_total_tubes_counts[tube_name] = structures_total_tubes_counts.get(tube_name, 0) + tube_count
 
 
                 # Add aluminum cost
