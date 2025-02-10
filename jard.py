@@ -1,168 +1,125 @@
 from structural_blueprints import STRUCTURAL_BLUEPRINTS
+from tubes import STD_ALUMINUM_TUBE_INFO
 from prices import PRICES
+
 from check import check
+import math
 
 WORKERFEE_PER_METER_SQUARED = 5
 CM2_TO_M2_CONVERSION_FACTOR = 10000
 
 
 class Jard:
-    def slide_window(self, windows):
-        def calculate_total_part_length(w, h, structural_blueprint):
-            parts_multiplied_total_length = {}
-            parts_combined_total_length = 0
-            
-            for part in structural_blueprint:
-                dimension_multipliers = structural_blueprint[part]["dimension multipliers"]
-                dimension_ratios = structural_blueprint[part]["dimension ratios"]
+    def slide_window(self, structures):
+        def calculate_tube_length(w, h, dimension_counts, dimension_ratios, part_count):
+            w_count = dimension_counts["w"]
+            h_count = dimension_counts["h"]
+            w_ratio = dimension_ratios["w"]
+            h_ratio = dimension_ratios["h"]
 
-                w_count = dimension_multipliers["w"]
-                h_count = dimension_multipliers["h"]
-                w_ratio = dimension_ratios["w"]
-                h_ratio = dimension_ratios["h"]
-                part_count = structural_blueprint[part]["count"]
+            scaled_w = w * w_ratio
+            scaled_h = h * h_ratio
 
-                total_w_length = (w * w_ratio) * w_count
-                total_h_length = (h * h_ratio) * h_count
-                part_total_length = total_w_length + total_h_length
+            total_w_length = (scaled_w) * w_count
+            total_h_length = (scaled_h) * h_count
+            part_length = total_w_length + total_h_length
 
-                part_multiplied_total_length = part_total_length * part_count
-
-                parts_multiplied_total_length[part] = part_multiplied_total_length
-                parts_combined_total_length += part_multiplied_total_length
-            
-            return parts_multiplied_total_length, parts_combined_total_length
+            total_part_length = part_length * part_count
+        
+            return total_part_length
         
 
-        def calculate_total_aluminums_weights(structural_blueprint, parts_length):
-            parts_weights = {}
-            combined_weight = 0
-            for part in structural_blueprint:
-                std_length = structural_blueprint[part]["std_tube_measurements"]["length"]
-                std_weight = structural_blueprint[part]["std_tube_measurements"]["weight"]
-                weight = (std_weight * parts_length[part]) / std_length
+        def calculate_aluminum_weight(part_length, tube):
+            tube_std_measurements = STD_ALUMINUM_TUBE_INFO[tube]["measurements"]
+            std_length = tube_std_measurements["length"]
+            std_weight = tube_std_measurements["weight"]
+            weight = (std_weight * part_length) / std_length
 
-                parts_weights[part] = weight
-                combined_weight += weight
+            return weight
+        
 
-            return parts_weights, combined_weight
+        structures_total_accessories_counts = {}
+        structures_total_tubes_counts = {}
+        structures_total_cost = 0
+
+        for structure in structures:
+            structure_total_accessories_counts = {}
+            structure_total_tubes_counts = {}
+            structure_total_cost = 0
+
+            structural_blueprint_code = structure["strbluprnt code"]
+            structural_blueprint = STRUCTURAL_BLUEPRINTS[structural_blueprint_code]
+            # Assign structure width and height
+            w = structure["w"]
+            h = structure["h"]
+
+            for part, info in structural_blueprint.items():
+                part_count = info["count"]
+                # Add accessories to total structures' accessories counts dict
+                for accessory, accessory_count in info["accessories counts"].items():
+                    total_accessory_count = accessory_count * part_count
+                    std_accessory_info = PRICES[accessory]
+                    # Add accessory counts
+                    accessory_name = std_accessory_info["name"]
+                    structure_total_accessories_counts[accessory_name] = structure_total_accessories_counts.get(accessory_name, 0) + total_accessory_count
+                    structures_total_accessories_counts[accessory_name] = structures_total_accessories_counts.get(accessory_name, 0) + total_accessory_count
+
+                    # Add accessory prices
+                    accessory_cost = std_accessory_info["price"]
+                    total_accessory_cost = accessory_cost * total_accessory_count
+
+                    structure_total_cost += total_accessory_cost
+                    structures_total_cost += total_accessory_cost
+                    # debug_accessories_cost += total_accessory_cost
+
+                # Add total part tubes onto structures' total tubes counts dict
+                tube = info["tube"]
+                std_tube_info = STD_ALUMINUM_TUBE_INFO[tube]
+                tube_name = std_tube_info["name"]
+
+                dimension_counts = info["dimension counts"]
+                dimension_ratios = info["dimension ratios"]
+                part_count = info["count"]
+
+                tube_info = (dimension_counts, dimension_ratios, part_count)
+
+                total_tube_length = calculate_tube_length(w, h, *tube_info)
+
+                std_tube_length = STD_ALUMINUM_TUBE_INFO[tube]["measurements"]["length"]
+                tube_count = math.ceil(total_tube_length / std_tube_length)
+
+                structure_total_tubes_counts[tube_name] = structure_total_tubes_counts.get(tube, 0) + tube_count
+                structures_total_tubes_counts[tube_name] = structures_total_tubes_counts.get(tube, 0) + tube_count
 
 
-        def count_total_accesories(structural_blueprint):
-            total_part_accessories_details = {}
-            combined__total_accessories_details = {}
+                # Add aluminum cost
+                structure_total_weight = calculate_aluminum_weight(total_tube_length, tube)
+                aluminum_kg_cost = PRICES["aluminum kg"]
+                aluminum_kg_total_cost = aluminum_kg_cost * structure_total_weight
 
-            for part in structural_blueprint:
-                accessories_details = structural_blueprint[part]["accessories"]
-
-                if accessories_details:
-                    part_count = structural_blueprint[part]["count"]
-
-                    for accessory in accessories_details:
-                        accessory_count = accessories_details[accessory]["count"]
-                        accessory_price = accessories_details[accessory]["price"]
-
-                        accessory_total_count = accessory_count * part_count
-                        accessory_total_price = accessory_total_count * accessory_price
-
-                        # Add accessory details to total_part_accessories_details
-                        if part in total_part_accessories_details:
-                            total_part_accessories_details[part][accessory] = {
-                                "total count": accessory_total_count,
-                                "total price": accessory_total_price,
-                            }
-                        else:
-                            total_part_accessories_details[part] = {
-                                accessory:{
-                                    "total count": accessory_total_count,
-                                    "total price": accessory_total_price,
-                                }
-                            }
-
-                        if accessory in combined__total_accessories_details:
-                            combined__total_accessories_details[accessory]["total count"] += accessory_total_count
-                            combined__total_accessories_details[accessory]["total price"] += accessory_total_price
-                        else:
-                            combined__total_accessories_details[accessory] = {
-                            "total count": accessory_total_count,
-                            "total price": accessory_total_price,
-                            }
-
-            return combined__total_accessories_details, total_part_accessories_details
+                structure_total_cost += aluminum_kg_total_cost
+                structures_total_cost += aluminum_kg_total_cost
+                # debug_aluminum_cost += aluminum_kg_total_cost
 
 
-        slidewindow_str_blu = STRUCTURAL_BLUEPRINTS["slide window"]
+            # Calculate structure area
+            area = (w * h) / CM2_TO_M2_CONVERSION_FACTOR
 
-        total_windows_cost_sum = 0
+            workerfee = WORKERFEE_PER_METER_SQUARED * area
 
-        for i, window in enumerate(windows):
-            # Assign window width and height
-            window_w = window["w"]
-            window_h = window["h"]
-            # Calculate window area
-            window_area = (window_w * window_h) / CM2_TO_M2_CONVERSION_FACTOR
+            structure_total_cost += workerfee
+            structures_total_cost += workerfee
+            # debug_workerfee += workerfee
 
-            # Calculate total parts lengths
-            parts_multiplied_total_length, parts_combined_length = calculate_total_part_length(window_w, window_h, slidewindow_str_blu)
-            # Calculate alumnium weight
-            parts_aluminum_weights, combined_aluminum_weight = calculate_total_aluminums_weights(slidewindow_str_blu, parts_multiplied_total_length)
-            # Calculate total accessories
-            combined_total_accessories_details, total_part_accessories_details = count_total_accesories(slidewindow_str_blu)
-            # Calculate total accessories price
-            total_accessories_cost = 0
-            for accessory in combined_total_accessories_details:
-                total_accessories_cost += combined_total_accessories_details[accessory]["total price"]
+            # debug_costs = {"Total Aluminum cost": debug_aluminum_cost, 
+            #                 "Total Accessories cost": debug_accessories_cost,
+            #                 "Total Workerfee cost": debug_workerfee}
 
-            # Calculate prices
-            total_aluminums_price = self._calculate_price(PRICES["aluminum kg"], combined_aluminum_weight)
-            workerfee = window_area * WORKERFEE_PER_METER_SQUARED
+        output = [{"Structs total accessories counts": structures_total_accessories_counts},
+                  {"Structs total tubes counts": structures_total_tubes_counts}, 
+                  {"Structs total cost": round(structures_total_cost, 2)}]
+        
 
-            # Calculate total cost
-            prices_to_sum = [
-                total_aluminums_price,
-                total_accessories_cost,
-                workerfee,
-            ]
-            total_cost = sum(prices_to_sum)
-
-            # Calculate price per meter
-            price_per_meter = total_cost / window_area
-
-            # Assign counts with prices
-            debug = [
-                {"Window:": f"width = {window_w} height = {window_h}"},
-                {
-                    "Total Aluminums Weight": f"{combined_aluminum_weight} kg",
-                    "Price": f"$ {total_aluminums_price}",
-                },
-                total_part_accessories_details,
-                {"Total Worker Fee": f"$ {workerfee}"},
-                {"Total Cost": f"$ {total_cost}"},
-                {"Total Aluminum Kg": f"{combined_aluminum_weight} kg"},
-            ]
-
-            output = [
-                {"Window:": f"id: {i + 1} w: {window_w} h:{window_h}"},
-                {"Total Aluminum Kg": f"{combined_aluminum_weight} kg"},
-                {"Total Cost": f"$ {(total_cost):.2f}"},
-                {"Price per meter": f"$ {price_per_meter:.2f}"},
-            ]
-
-            for dict in debug:
-                for key, value in dict.items():
-                    print(key, value)
-            print("\n")
-
-            total_windows_cost_sum += total_cost
-
-        print(f"total sum cost of windows: $ {round(total_windows_cost_sum, 2)}")
-
-    def door(self, doors):
-        for door in doors:
-            ...
-
-    # Private functions
-    def _calculate_price(self, price, quantity):
-        total_price = price * quantity
-
-        return total_price
+        import json
+        json_output = json.dumps(output, indent=4)
+        print(json_output)

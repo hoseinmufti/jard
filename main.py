@@ -3,15 +3,15 @@
 from jard import Jard
 
 def main():
-    slide_windows = [
-        {"w": 193, "h": 245},
-        # {"w": 200, "h": 125},
-        # {"w": 200, "h": 250},
-        # {"w": 200, "h": 275},
-        # {"w": 150, "h": 125},
-        # {"w": 150, "h": 150},
-        # {"w": 180, "h": 250},
-        # {"w": 200, "h": 250},
+    structures = [
+        {"w": 193, "h": 245, "strbluprnt code": "slide window"},
+        {"w": 200, "h": 125, "strbluprnt code": "slide window"},
+        {"w": 200, "h": 250, "strbluprnt code": "slide window"},
+        {"w": 200, "h": 275, "strbluprnt code": "slide window"},
+        {"w": 150, "h": 125, "strbluprnt code": "slide window"},
+        {"w": 150, "h": 150, "strbluprnt code": "slide window"},
+        {"w": 180, "h": 250, "strbluprnt code": "slide window"},
+        {"w": 200, "h": 250, "strbluprnt code": "slide window"},
     ]
     
     # doors = [
@@ -19,7 +19,7 @@ def main():
     # ]
     
     jard = Jard()
-    jard.slide_window(slide_windows)
+    jard.slide_window(structures)
 
 
 
