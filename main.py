@@ -18,25 +18,10 @@ def main():
         { "strbluprnt": "slide window 2 curve", "w": 240, "h": 128},
         { "strbluprnt": "slide window 2 curve", "w": 190, "h": 127},
         { "strbluprnt": "slide window 2 curve", "w": 134, "h": 80},
-
-
-
-
-
-
-
-
-
     ]
-    
-    # doors = [
-    #     {"w": 120, "h": 200},
-    # ]
     
     jard = Jard()
     jard.slide_window(slide_windows)
-
-
 
 if __name__ == "__main__":
     main()
