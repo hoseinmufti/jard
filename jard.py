@@ -1,5 +1,4 @@
 from structural_blueprints import STRUCTURAL_BLUEPRINTS
-from tubes import STD_ALUMINUM_TUBE_INFO
 from prices import PRICES
 from utils import format_output, get_kurdish_output, print_output
 from calculator import (calculate_tube_length, calculate_aluminum_weight,
@@ -30,7 +29,8 @@ class Jard:
                     structures_total_accessories_counts[accessory] = structures_total_accessories_counts.get(accessory, 0) + total_accessory_count
                     
                     accessory_cost = PRICES[accessory]["price"]
-                    structures_total_cost += accessory_cost * total_accessory_count
+                    accessory_total_cost = accessory_cost * total_accessory_count
+                    structures_total_cost += accessory_total_cost
 
                 # Calculate tubes
                 tube = info["tube"]
@@ -55,7 +55,7 @@ class Jard:
         output_en = [
             {"Structs total accessories counts": structures_total_accessories_counts},
             {"Structs total tubes counts": structures_total_tubes_counts},
-            {"Structs total length": round(structures_total_length, 2)},
+            {"Structs total length": round((structures_total_length) / 100, 2)},
             {"Structs total cost": round(structures_total_cost, 2)}
         ]
 
