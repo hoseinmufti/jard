@@ -19,7 +19,9 @@ def format_output(data, indent=0):
             output_lines.append(f"{spaces}{key}:")
             if isinstance(value, dict):
                 for k, v in value.items():
-                    if isinstance(v, float):
+                    if "tubes counts" in key:  # Check if we're handling tubes
+                        output_lines.append(f"{spaces}    {k}: {round(v, 1)}")
+                    elif isinstance(v, float):
                         output_lines.append(f"{spaces}    {k}: {round(v, 2)}")
                     else:
                         output_lines.append(f"{spaces}    {k}: {v}")
